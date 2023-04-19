@@ -1,1 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+  <h1>景點觀光展覽資訊 <input type="text" id="search" onchange="update()"></h1>
+  <table id="csie" class="table table-stripped table-hover">
+    <tr>
+      <th>名稱</th>
+      <th>地點</th>
+      <th>票價</th>
+    </tr>
+  </table>
+  <ul class="breadcrumb">
+    <li><button onclick="pageUp()">上一頁</button></li>
+    <li id="pagination"> 0 / 0 </li>
+    <li><button onclick="pageDown()">下一頁</button></li>
+  </ul>
+  <script>
+    const openUrl = "https://cloud.culture.tw/frontsite/trans/SearchShowAction.do?method=doFindTypeJ&category=6";
+    fetch(openUrl)
+    .then(res => {
+      return res.json();
+    }).then(result => {
+      dataset = result;
+      activePage = 1;
+      addNewData();
+    });
 
+    var dataset = [];
+    var activePage = 0;
+
+    function addNewData() {
+      var myTable = document.getElementById("csie");
+      var search = document.getElementById("search").value;
+      var newData = dataset.filter(function(data) {
+        return data['title'].includes(search);
+      });
+      if (activePage < 1)
+        activePage = 1;
+      if (activePage > Math.ceil(newData.length / 10))
+        activePage = Math.ceil(newData.length / 10);
+
+      newData.slice((activePage - 1) * 10, activePage * 10).forEach(function(data, index) {
+        var row = myTable.insertRow(-1);
+        row.insertCell(0).innerHTML = data['title'];
+        row.insertCell(1).innerHTML = data['showInfo'][0]['location'];
+        row.insertCell(2).innerHTML = data['showInfo'][0]['price'];
+      });
+
+      var myPage = document.getElementById("pagination");
+      myPage.innerHTML = ` ${activePage} / ${Math.ceil(newData.length / 10)} `;
+    }
+
+    function update() {
+      var myTable = document.getElementById("csie");
+      while (myTable.rows.length > 1)
+        myTable.deleteRow(-1);
+      addNewData();
+    }
+
+    function pageUp() {
+      activePage--;
+      update();
+    }
+
+    function pageDown() {
+      activePage++;
+      update();
+    }
+  </script>
+</body>
+</html>
